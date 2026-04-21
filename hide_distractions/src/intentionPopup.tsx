@@ -137,7 +137,8 @@ const IntentionPopup = () => {
       setShowWarning(false);
     }
   };
-
+  
+  
   if (!visible || !localizedText) { // don’t show if storage says hide
     console.warn("Waiting for translations or popup not visible");
     return null;

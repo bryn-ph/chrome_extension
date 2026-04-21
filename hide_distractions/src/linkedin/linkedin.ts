@@ -76,6 +76,17 @@
     });
   };
 
+  // Blur notification badges
+  const blurNotificationBadges = () => {
+    document.querySelectorAll<HTMLElement>(".notification-badge, .artdeco-notification-badge, .nav-item__badge").forEach(badge => {
+      badge.style.cssText = BlurSection;
+    });
+  };
+
+  blurNotificationBadges();
+  new MutationObserver(() => blurNotificationBadges())
+    .observe(document.body, { childList: true, subtree: true });
+
   // Stored setting on load
   chrome.storage.local.get(
     { linkedinBlurPYMK: true, linkedinBlurNews: true, linkedinBlurJobs: true, linkedinBlurHome: true },
@@ -124,3 +135,4 @@
     }
   });
 })();
+
