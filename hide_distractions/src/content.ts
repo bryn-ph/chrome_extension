@@ -36,9 +36,10 @@ window.addEventListener("message", (event) => {
 });
 
 // Inject popup on first visit if no domain session exists
-chrome.storage.local.get(["focusData"], ({ focusData }) => {
+chrome.storage.local.get(["focusData", "relaxList"], ({ focusData, relaxList }) => {
   const session = focusData?.[domain];
-  if (!session) {
+  const isRelaxSite = (relaxList || []).some((site: string) => domain.includes(site));
+  if (!session && !isRelaxSite) {
     console.log(`[Content] No session found for ${domain}, injecting popup`);
     if (!document.getElementById("intention-popup-script")) {
       const script = document.createElement("script");

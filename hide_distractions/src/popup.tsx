@@ -34,6 +34,8 @@ const App = () => {
   const [settingsBlockedMessage, setSettingsBlockedMessage] = useState(false);
   const [currentDomain, setCurrentDomain] = useState<string | null>(null);
   const [showIntentionPopup, setShowIntentionPopup] = useState(true);
+  const [relaxList, setRelaxList] = useState<string[]>([]);
+  const [newRelaxSite, setNewRelaxSite] = useState("");
 
   const [allFocusSessions, setAllFocusSessions] = useState<
     Record<string, { intention: string; timeLeft: number }>
@@ -83,6 +85,9 @@ const App = () => {
     );
     chrome.storage.local.get({ showIntentionPopup: true }, ({ showIntentionPopup }) => {
       setShowIntentionPopup(showIntentionPopup);
+    });
+    chrome.storage.local.get({ relaxList: [] }, ({ relaxList }) => {
+      setRelaxList(relaxList);
     });
   }, []);
 
@@ -384,6 +389,52 @@ const App = () => {
           <Toggle checked={linkedinBlurHome} onChange={handleLinkedinHomeToggle} />
         </label>
       </div>
+      <h3 className="settings-label">Relax List</h3>
+        <p style={{ fontSize: "11px", color: "#888", margin: "0 0 6px" }}>
+          Sites allowed during break time
+        </p>
+        <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+          <input
+            type="text"
+            placeholder="e.g. netflix.com"
+            value={newRelaxSite}
+            onChange={(e) => setNewRelaxSite(e.target.value)}
+            style={{ flex: 1, padding: "6px", borderRadius: "6px", border: "1px solid #ccc", fontSize: "13px" }}
+          />
+          <button
+            onClick={() => {
+              const site = newRelaxSite.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "");
+              if (site && !relaxList.includes(site)) {
+                const updated = [...relaxList, site];
+                setRelaxList(updated);
+                chrome.storage.local.set({ relaxList: updated });
+              }
+              setNewRelaxSite("");
+            }}
+            style={{ padding: "6px 12px", borderRadius: "6px", background: "#2ecc71", color: "white", border: "none", cursor: "pointer", fontSize: "13px" }}
+          >
+            Add
+          </button>
+        </div>
+        {relaxList.length > 0 && (
+          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 8px" }}>
+            {relaxList.map((site) => (
+              <li key={site} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", fontSize: "13px" }}>
+                <span>{site}</span>
+                <button
+                  onClick={() => {
+                    const updated = relaxList.filter((s) => s !== site);
+                    setRelaxList(updated);
+                    chrome.storage.local.set({ relaxList: updated });
+                  }}
+                  style={{ background: "transparent", border: "none", color: "#e74c3c", cursor: "pointer", fontSize: "16px" }}
+                >
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       <button className="close-button" onClick={() => setShowSettings(false)}>
         {t("close_button")}
       </button>
