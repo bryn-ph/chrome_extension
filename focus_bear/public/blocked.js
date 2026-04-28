@@ -5,9 +5,7 @@
   const domainEl = document.getElementById("domain");
   if (domainEl) domainEl.textContent = domain;
 
-  // "Go back": navigate back if we have history, otherwise close the tab.
-  // If going back returns the user to a still-blocked URL the background
-  // script will re-redirect them here, which is the intended behaviour.
+  // Back button should go back to the previous page if there is one, otherwise it should close the tab or window.
   const backBtn = document.getElementById("back");
   if (backBtn) {
     backBtn.addEventListener("click", () => {

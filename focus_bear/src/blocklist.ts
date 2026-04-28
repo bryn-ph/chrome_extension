@@ -1,9 +1,3 @@
-// Defense-in-depth content script that runs at document_start. The main
-// enforcement is the background script redirecting blocklisted tabs to the
-// extension's blocked.html, but service workers can be slow to wake up after
-// a Chrome restart, so this script does a synchronous best-effort check
-// against cached blocklist/focusSessionState and stops the page early.
-
 type FocusSessionState = {
   started?: boolean;
   onBreak?: boolean;
