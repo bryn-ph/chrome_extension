@@ -127,7 +127,10 @@ function isFocusActive(state: FocusState): boolean {
   return !!(state && state.started === true && state.onBreak !== true);
 }
 
-function urlIsBlocklisted(url: string, blocklist: string[] | undefined): { blocked: boolean; host: string } {
+function urlIsBlocklisted(
+  url: string,
+  blocklist: string[] | undefined,
+): { blocked: boolean; host: string } {
   if (!blocklist || blocklist.length === 0) return { blocked: false, host: "" };
   try {
     const parsed = new URL(url);
@@ -150,14 +153,17 @@ function maybeBlockTab(tabId: number, url: string | undefined) {
   if (!url) return;
   if (url.startsWith(BLOCKED_PAGE)) return; // already blocked
 
-  chrome.storage.local.get(["focusSessionState", "blocklist"], ({ focusSessionState, blocklist }) => {
-    if (!isFocusActive(focusSessionState)) return;
-    const { blocked, host } = urlIsBlocklisted(url, blocklist);
-    if (!blocked) return;
-    chrome.tabs.update(tabId, { url: buildBlockedUrl(host) }).catch((err) => {
-      console.warn("[FocusBear] failed to redirect blocked tab:", err);
-    });
-  });
+  chrome.storage.local.get(
+    ["focusSessionState", "blocklist"],
+    ({ focusSessionState, blocklist }) => {
+      if (!isFocusActive(focusSessionState)) return;
+      const { blocked, host } = urlIsBlocklisted(url, blocklist);
+      if (!blocked) return;
+      chrome.tabs.update(tabId, { url: buildBlockedUrl(host) }).catch((err) => {
+        console.warn("[FocusBear] failed to redirect blocked tab:", err);
+      });
+    },
+  );
 }
 
 // Catch new navigations as they happen.
@@ -187,4 +193,4 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
-export { };
+export {};

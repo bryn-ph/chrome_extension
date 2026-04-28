@@ -18,19 +18,13 @@ const translations = {
 };
 
 // Send translations initially
-window.postMessage(
-  { type: "FOCUSBEAR_TRANSLATIONS", payload: translations },
-  "*",
-);
+window.postMessage({ type: "FOCUSBEAR_TRANSLATIONS", payload: translations }, "*");
 console.log("[FocusBear] Translation message sent");
 
 // Respond if popup requests translations again
 window.addEventListener("message", (event) => {
   if (event.data?.type === "REQUEST_TRANSLATIONS") {
-    window.postMessage(
-      { type: "FOCUSBEAR_TRANSLATIONS", payload: translations },
-      "*",
-    );
+    window.postMessage({ type: "FOCUSBEAR_TRANSLATIONS", payload: translations }, "*");
   }
 });
 

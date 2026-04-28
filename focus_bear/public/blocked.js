@@ -21,7 +21,7 @@
             window.close();
           }
         });
-      } catch (e) {
+      } catch {
         window.close();
       }
     });

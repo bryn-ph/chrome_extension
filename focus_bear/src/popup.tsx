@@ -814,9 +814,7 @@ const App = () => {
     </div>
   );
 
-  return (
-    <div className="popup-container">{showSettings ? settingsView : mainView}</div>
-  );
+  return <div className="popup-container">{showSettings ? settingsView : mainView}</div>;
 };
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
