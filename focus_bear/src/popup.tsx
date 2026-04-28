@@ -26,67 +26,45 @@ const Toggle = ({
   </div>
 );
 
-const BlocklistEditor = ({ onClose }: { onClose: () => void }) => {
+const BlocklistEditor = () => {
   const [blocklist, setBlocklist] = useState<string[]>([]);
   const [relaxlist, setRelaxlist] = useState<string[]>([]);
   const [newSite, setNewSite] = useState("");
-  const [activeHours, setActiveHours] = useState<{ start: number; end: number }>({
-    start: 0,
-    end: 0,
-  });
-  const [isValid, setIsValid] = useState(true);
-  const [isBlockedNow, setIsBlockedNow] = useState(false);
-  const [currentTab, setCurrentTab] = useState<"blocklist" | "relaxlist">("blocklist");
+  const [inFocusSession, setInFocusSession] = useState(false);
+  const [innerTab, setInnerTab] = useState<"blocklist" | "relaxlist">("blocklist");
   const loadedOnce = useRef(false);
 
-  const checkIfBlockedNow = (hours: { start: number; end: number }) => {
-    const now = new Date();
-    const currentHour = now.getHours();
-    const { start, end } = hours;
-    return start <= end
-      ? currentHour >= start && currentHour < end
-      : currentHour >= start || currentHour < end; // overnight
+  const computeInFocusSession = (state: any) => {
+    return !!(state && state.started === true && state.onBreak !== true);
   };
 
   useEffect(() => {
     if (loadedOnce.current) return;
-    chrome.storage.local.get(["blocklist", "relaxlist", "activeHours"], (data) => {
+    chrome.storage.local.get(["blocklist", "relaxlist", "focusSessionState"], (data) => {
       if (data.blocklist) setBlocklist(data.blocklist);
       if (data.relaxlist) setRelaxlist(data.relaxlist);
-      if (data.activeHours) setActiveHours(data.activeHours);
-      setIsBlockedNow(checkIfBlockedNow(data.activeHours || activeHours));
+      setInFocusSession(computeInFocusSession(data.focusSessionState));
       loadedOnce.current = true;
     });
+
+    const handler = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string,
+    ) => {
+      if (areaName !== "local") return;
+      if (changes.focusSessionState) {
+        setInFocusSession(computeInFocusSession(changes.focusSessionState.newValue));
+      }
+      if (changes.blocklist) {
+        setBlocklist(changes.blocklist.newValue || []);
+      }
+      if (changes.relaxlist) {
+        setRelaxlist(changes.relaxlist.newValue || []);
+      }
+    };
+    chrome.storage.onChanged.addListener(handler);
+    return () => chrome.storage.onChanged.removeListener(handler);
   }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIsBlockedNow(checkIfBlockedNow(activeHours));
-    }, 1000 * 60); // every minute
-    return () => clearInterval(interval);
-  }, [activeHours]);
-
-  const handleActiveHoursChange = (start: number, end: number) => {
-    const sanitizedStart = Math.max(0, Math.min(23, Math.floor(start)));
-    const sanitizedEnd = Math.max(0, Math.min(23, Math.floor(end)));
-    setActiveHours({ start: sanitizedStart, end: sanitizedEnd });
-
-    // Validation: must be within 0-23, start and end cannot be NaN
-    setIsValid(
-      !isNaN(sanitizedStart) &&
-        !isNaN(sanitizedEnd) &&
-        sanitizedStart >= 0 &&
-        sanitizedStart <= 23 &&
-        sanitizedEnd >= 0 &&
-        sanitizedEnd <= 23,
-    );
-  };
-
-  const saveActiveHours = () => {
-    if (!isValid) return;
-    chrome.storage.local.set({ activeHours });
-    setIsBlockedNow(checkIfBlockedNow(activeHours));
-  };
 
   const normalizeDomain = (input: string) => {
     let domain = input.trim().toLowerCase();
@@ -96,8 +74,12 @@ const BlocklistEditor = ({ onClose }: { onClose: () => void }) => {
   };
 
   const addSite = () => {
-    if (isBlockedNow || !newSite) return;
+    if (inFocusSession || !newSite.trim()) return;
     const formatted = normalizeDomain(newSite);
+    if (!formatted) {
+      setNewSite("");
+      return;
+    }
     if (!blocklist.includes(formatted)) {
       const updated = [...blocklist, formatted];
       setBlocklist(updated);
@@ -107,7 +89,7 @@ const BlocklistEditor = ({ onClose }: { onClose: () => void }) => {
   };
 
   const removeSite = (site: string) => {
-    if (isBlockedNow) return;
+    if (inFocusSession) return;
     const updatedBlock = blocklist.filter((s) => s !== site);
     setBlocklist(updatedBlock);
     chrome.storage.local.set({ blocklist: updatedBlock });
@@ -132,40 +114,44 @@ const BlocklistEditor = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="blocklist-editor">
-      <h2 className="settings-title">Manage Websites</h2>
-
       <div className="tab-buttons">
         <button
-          className={`tab-button ${currentTab === "blocklist" ? "active" : ""}`}
-          onClick={() => setCurrentTab("blocklist")}
+          className={`tab-button ${innerTab === "blocklist" ? "active" : ""}`}
+          onClick={() => setInnerTab("blocklist")}
         >
-          Blocklist
+          <span className="tab-label">Blocklist</span>
         </button>
         <button
-          className={`tab-button ${currentTab === "relaxlist" ? "active" : ""}`}
-          onClick={() => setCurrentTab("relaxlist")}
+          className={`tab-button ${innerTab === "relaxlist" ? "active" : ""}`}
+          onClick={() => setInnerTab("relaxlist")}
         >
-          Relaxlist
+          <span className="tab-label">Relaxlist</span>
         </button>
       </div>
 
-      {currentTab === "blocklist" && (
+      {innerTab === "blocklist" && (
         <>
-          <p className="blocklist-instructions">Enter a site to block during your active hours:</p>
+          <p className="blocklist-instructions">
+            Enter a site to block during your Focus Sessions:
+          </p>
           <div className="site-input-container">
             <input
               type="text"
               value={newSite}
-              placeholder="Enter site to block"
+              placeholder="e.g. youtube.com"
               onChange={(e) => setNewSite(e.target.value)}
-              disabled={isBlockedNow}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addSite();
+              }}
+              disabled={inFocusSession}
             />
-            <button onClick={addSite} disabled={isBlockedNow}>
+            <button onClick={addSite} disabled={inFocusSession}>
               Add
             </button>
           </div>
 
           <ul className="site-list">
+            {blocklist.length === 0 && <li>No sites in Blocklist</li>}
             {blocklist.map((site) => (
               <li key={site} className="site-card">
                 <span>{site}</span>
@@ -176,7 +162,7 @@ const BlocklistEditor = ({ onClose }: { onClose: () => void }) => {
                   >
                     {relaxlist.includes(site) ? "Relax ✓" : "Add to Relax"}
                   </button>
-                  <button onClick={() => removeSite(site)} disabled={isBlockedNow}>
+                  <button onClick={() => removeSite(site)} disabled={inFocusSession}>
                     Remove
                   </button>
                 </div>
@@ -184,49 +170,15 @@ const BlocklistEditor = ({ onClose }: { onClose: () => void }) => {
             ))}
           </ul>
 
-          <div className="active-hours-container">
-            <label>
-              Start Hour:
-              <input
-                type="number"
-                min={0}
-                max={23}
-                value={activeHours.start}
-                onChange={(e) => handleActiveHoursChange(+e.target.value, activeHours.end)}
-                disabled={isBlockedNow}
-                className="active-hours-input"
-              />
-            </label>
-            <label>
-              End Hour:
-              <input
-                type="number"
-                min={0}
-                max={23}
-                value={activeHours.end}
-                onChange={(e) => handleActiveHoursChange(activeHours.start, +e.target.value)}
-                disabled={isBlockedNow}
-                className="active-hours-input"
-              />
-            </label>
-            <button
-              className="save-hours-btn"
-              onClick={saveActiveHours}
-              disabled={!isValid || isBlockedNow}
-            >
-              Save
-            </button>
-          </div>
-
-          {isBlockedNow && (
-            <p className="settings-warning">Blocklist is locked during active hours</p>
+          {inFocusSession && (
+            <p className="settings-warning">Blocklist is locked during a Focus Session</p>
           )}
         </>
       )}
 
-      {currentTab === "relaxlist" && (
+      {innerTab === "relaxlist" && (
         <>
-          <p className="blocklist-instructions">These websites are accessable during your breaks</p>
+          <p className="blocklist-instructions">These websites are accessible during your breaks</p>
           <ul className="site-list">
             {relaxlist.length === 0 && <li>No sites in Relaxlist</li>}
             {relaxlist.map((site) => (
@@ -235,7 +187,7 @@ const BlocklistEditor = ({ onClose }: { onClose: () => void }) => {
                 <button
                   className="remove-button"
                   onClick={() => toggleRelaxlist(site)}
-                  disabled={isBlockedNow}
+                  disabled={inFocusSession}
                 >
                   Remove
                 </button>
@@ -244,10 +196,6 @@ const BlocklistEditor = ({ onClose }: { onClose: () => void }) => {
           </ul>
         </>
       )}
-
-      <button className="close-button" onClick={onClose}>
-        Back
-      </button>
     </div>
   );
 };
@@ -270,9 +218,7 @@ const App = () => {
   const [promotionBlurEnabled, setPromotionBlurEnabled] = useState(true);
   const [socialBlurEnabled, setSocialBlurEnabled] = useState(true);
 
-  const [currentTab, setCurrentTab] = useState<"timer" | "active">("timer");
-
-  const [showBlocklist, setShowBlocklist] = useState(false);
+  const [currentTab, setCurrentTab] = useState<"timer" | "active" | "blocklist">("timer");
 
   const [allUnfocusSessions, setAllUnfocusSessions] = useState<
     Record<string, { intention: string; timeLeft: number }>
@@ -678,24 +624,35 @@ const App = () => {
           className={`tab-button ${currentTab === "timer" ? "active" : ""}`}
           onClick={() => setCurrentTab("timer")}
         >
-          Focus Timer
+          <span className="tab-label">Focus Timer</span>
         </button>
         <button
           className={`tab-button ${currentTab === "active" ? "active" : ""}`}
           onClick={() => setCurrentTab("active")}
         >
-          Active Sessions
+          <span className="tab-label">Sessions</span>
           {(activeFocusSession ? 1 : 0) + Object.keys(allUnfocusSessions).length > 0 && (
             <span className="tab-badge">
               {(activeFocusSession ? 1 : 0) + Object.keys(allUnfocusSessions).length}
             </span>
           )}
         </button>
+        <button
+          className={`tab-button ${currentTab === "blocklist" ? "active" : ""}`}
+          onClick={() => setCurrentTab("blocklist")}
+        >
+          <span className="tab-label">Blocklist</span>
+        </button>
       </div>
       {/* Tab content */}
       {currentTab === "timer" && (
         <div className="focus_session_player" style={{ backgroundColor: "#fffcf6" }}>
           <FocusTimer />
+        </div>
+      )}
+      {currentTab === "blocklist" && (
+        <div className="blocklist-tab">
+          <BlocklistEditor />
         </div>
       )}
       {currentTab === "active" && (
@@ -851,10 +808,6 @@ const App = () => {
           <Toggle checked={socialBlurEnabled} onChange={handleSocialBlurToggle} />
         </label>
       </div>
-      <button className="close-button" onClick={() => setShowBlocklist(true)}>
-        Edit Blocklist
-      </button>
-
       <button className="close-button" onClick={() => setShowSettings(false)}>
         {t("close_button")}
       </button>
@@ -862,15 +815,7 @@ const App = () => {
   );
 
   return (
-    <div className="popup-container">
-      {showBlocklist ? (
-        <BlocklistEditor onClose={() => setShowBlocklist(false)} />
-      ) : showSettings ? (
-        settingsView
-      ) : (
-        mainView
-      )}
-    </div>
+    <div className="popup-container">{showSettings ? settingsView : mainView}</div>
   );
 };
 

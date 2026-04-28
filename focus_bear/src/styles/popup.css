@@ -238,26 +238,57 @@ img.settings-icon {
 /* Tabs */
 .tab-buttons {
   display: flex;
-  margin-bottom: 16px;
-  gap: 8px;
+  margin: 0 0 18px;
+  padding: 4px;
+  gap: 2px;
+  background: #fff4e2;
+  border: 1px solid #e0b991;
+  border-radius: 10px;
+  box-shadow: inset 0 1px 2px rgba(102, 51, 0, 0.06);
 }
 
 .tab-button {
   flex: 1;
-  padding: 8px 0;
-  font-size: 16px;
-  background: #fffcf6;
-  border: 1px solid #e0b991;
-  border-radius: 6px;
+  min-width: 0;
+  padding: 7px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a6640;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   transition:
-    background-color 0.2s,
-    font-weight 0.2s;
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.tab-button .tab-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-button:hover:not(.active) {
+  color: #5a2c00;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .tab-button.active {
-  font-weight: bold;
-  background-color: #ffe4c6;
+  color: #fffcf6;
+  background: #e9902c;
+  box-shadow: 0 1px 3px rgba(102, 51, 0, 0.2);
+}
+
+.tab-button.active .tab-badge {
+  background: #fffcf6;
+  color: #e9902c;
 }
 
 /* Site list */
@@ -543,16 +574,19 @@ img.settings-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 6px;
-  margin-left: 6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  margin-left: 2px;
   border-radius: 999px;
   background-color: #e9902c;
   color: #fffcf6;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   line-height: 1;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .session-section .no-session {
