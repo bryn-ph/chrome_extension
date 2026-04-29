@@ -13,12 +13,14 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         color: #5a2c00;
       }
+
       body {
         display: flex;
         align-items: center;
         justify-content: center;
         min-height: 100vh;
       }
+
       .card {
         background: #fffcf6;
         padding: 40px 44px;
@@ -28,17 +30,20 @@
         border: 2px solid #f3a650;
         text-align: center;
       }
+
       .card img {
         width: 88px;
         height: auto;
         margin-bottom: 18px;
       }
+
       h1 {
         margin: 0 0 12px;
         font-size: 1.8rem;
         color: #663300;
         line-height: 1.2;
       }
+
       .domain {
         display: inline-block;
         margin: 0 0 16px;
@@ -50,17 +55,20 @@
         font-size: 14px;
         word-break: break-all;
       }
+
       p {
         margin: 0 0 20px;
         font-size: 16px;
         line-height: 1.55;
       }
+
       .actions {
         display: flex;
         gap: 10px;
         justify-content: center;
         flex-wrap: wrap;
       }
+
       button {
         background: #f3a650;
         color: #fffcf6;
@@ -72,9 +80,11 @@
         cursor: pointer;
         font-family: inherit;
       }
+
       button:hover {
         background: #e9902c;
       }
+
       .hint {
         margin-top: 22px;
         font-size: 13px;
@@ -82,19 +92,18 @@
       }
     </style>
   </head>
+
   <body>
     <div class="card">
       <img src="icons/bearLogo.png" alt="Focus Bear" />
-      <h1>Blocked during your Focus Session</h1>
+      <h1>Blocked by your Focus Session</h1>
       <div id="domain" class="domain"></div>
-      <p>
-        This site is on your blocklist. Stay focused - you can come back when your session ends.
-      </p>
+      <p>This site is on your blocklist. Stay focused! You can come back when your session ends.</p>
       <div class="actions">
         <button id="back">Go back</button>
       </div>
       <div class="hint">
-        Tip: end your Focus Session from the Focus Bear popup if you really need access.
+        End your Focus Session from the Focus Bear popup if you really need access.
       </div>
     </div>
     <script src="blocked.js"></script>
