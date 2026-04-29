@@ -694,8 +694,10 @@ const App = () => {
 
   const mainView = (
     <div className="main-view">
-      <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h1 className="popup-title">{t("home_title")}</h1>
+      <div className="main-header">
+        <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
+        <h1 className="popup-title">{t("home_title")}</h1>
+      </div>
       {/* Tab buttons */}
       <div className="tab-buttons">
         <button
@@ -807,9 +809,11 @@ const App = () => {
   );
 
   const settingsView = (
-    <div>
-      <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h2 className="settings-title">{t("settings_title")}</h2>
+    <div className="settings-view">
+      <div className="settings-header">
+        <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
+        <h2 className="settings-title">{t("settings_title")}</h2>
+      </div>
       <div className="options-container">
         <h3 className="settings-label">YouTube</h3>
         <label className="option-label">
@@ -875,13 +879,21 @@ const App = () => {
           <Toggle checked={socialBlurEnabled} onChange={handleSocialBlurToggle} />
         </label>
       </div>
-      <button className="close-button" onClick={() => setShowBlocklist(true)}>
-        Edit Blocklist
-      </button>
+      <div className="settings-action-row">
+        <button
+          className="close-button settings-action-button"
+          onClick={() => setShowBlocklist(true)}
+        >
+          Edit Blocklist
+        </button>
 
-      <button className="close-button" onClick={() => setShowSettings(false)}>
-        {t("close_button")}
-      </button>
+        <button
+          className="close-button settings-action-button"
+          onClick={() => setShowSettings(false)}
+        >
+          {t("close_button")}
+        </button>
+      </div>
     </div>
   );
 
