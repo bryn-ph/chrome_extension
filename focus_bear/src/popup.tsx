@@ -751,7 +751,7 @@ const App = () => {
                 </button>
               </div>
             ) : (
-              <p className="no-session">No focus session running</p>
+              <p className="no-session">No focus sessions running</p>
             )}
           </section>
 

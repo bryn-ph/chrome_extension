@@ -10,7 +10,7 @@ body {
   width: 400px;
   height: fit-content;
   padding: 24px 30px 30px;
-  background-color: #ffe4c6;
+  background-color: #FFF8E7;
   font-family: sans-serif;
 }
 
@@ -29,7 +29,7 @@ h1.popup-title,
 h2.settings-title {
   font-size: 2rem;
   margin: 0 0 20px;
-  color: #663300;
+  color: #000000;
   text-align: center;
   position: relative;
   top: -4px;
@@ -51,8 +51,9 @@ p.no-session {
 /* Settings icon */
 img.settings-icon {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
+  bottom: 2px;
+  left: 2px;
+  margin-top: 4px;
   width: 32px;
   height: auto;
   cursor: pointer;
@@ -180,7 +181,7 @@ button.close-button:disabled {
 /* Domain Title */
 .session-card .domain {
   font-weight: bold;
-  color: #5a2c00;
+  color: #000000;
   display: block;
   margin-bottom: 4px;
 }
@@ -246,6 +247,7 @@ img.settings-icon {
   flex: 1;
   padding: 8px 0;
   font-size: 16px;
+  font-weight: bold;
   background: #fffcf6;
   border: 1px solid #e0b991;
   border-radius: 6px;
@@ -257,7 +259,14 @@ img.settings-icon {
 
 .tab-button.active {
   font-weight: bold;
-  background-color: #ffe4c6;
+  background-color: #e9902c;
+  color: #ffffff;
+}
+
+.tab-button:active {
+  font-weight: bold;
+  background-color: #e9902c; 
+  color: #ffffff;
 }
 
 /* Site list */
@@ -286,7 +295,7 @@ img.settings-icon {
 /* Site name */
 .site-list li span {
   font-weight: bold;
-  color: #5a2c00;
+  color: #000000;
 }
 
 /* Buttons for actions */
@@ -356,7 +365,7 @@ img.settings-icon {
 
 .active-hours-container label {
   font-size: 15px;
-  color: #5a2c00;
+  color: #000000;
   font-weight: 700;
 }
 
@@ -372,7 +381,7 @@ img.settings-icon {
 }
 
 .save-hours-btn {
-  background: #5a2c00;
+  background: #000000;
   color: white;
   border: none;
   padding: 6px 10px;
@@ -392,7 +401,7 @@ img.settings-icon {
 /* Instruction text */
 .blocklist-instructions {
   font-size: 15px;
-  color: #5a2c00;
+  color: #000000;
   margin-bottom: 6px;
   font-weight: 700;
 }
@@ -411,7 +420,7 @@ img.settings-icon {
   border: 1px solid #e0b991;
   font-size: 14px;
   background-color: #fffcf6;
-  color: #5a2c00;
+  color: #000000;
 }
 
 /* Add button styled same width/height */
@@ -456,7 +465,7 @@ img.settings-icon {
   margin: 0 0 8px;
   font-size: 14px;
   font-weight: 700;
-  color: #5a2c00;
+  color: #000000;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding-bottom: 4px;
@@ -495,7 +504,7 @@ img.settings-icon {
 
 .session-task {
   font-weight: 600;
-  color: #5a2c00;
+  color: #000000;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -504,12 +513,12 @@ img.settings-icon {
 .session-time {
   font-family: monospace;
   font-weight: 700;
-  color: #5a2c00;
+  color: #000000;
   font-size: 16px;
 }
 
 .session-intention {
-  color: #5a2c00;
+  color: #000000;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -558,7 +567,7 @@ img.settings-icon {
 .session-section .no-session {
   margin: 8px 0 0;
   font-size: 14px;
-  color: #8a6640;
+  color: #4f4f4f;
   font-style: italic;
   text-align: center;
 }
