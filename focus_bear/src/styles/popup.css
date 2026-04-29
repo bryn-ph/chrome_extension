@@ -10,7 +10,7 @@ body {
   width: 400px;
   height: fit-content;
   padding: 24px 30px 30px;
-  background-color: #FFF8E7;
+  background-color: #fff8e7;
   font-family: sans-serif;
 }
 
@@ -265,7 +265,7 @@ img.settings-icon {
 
 .tab-button:active {
   font-weight: bold;
-  background-color: #e9902c; 
+  background-color: #e9902c;
   color: #ffffff;
 }
 
