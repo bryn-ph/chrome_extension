@@ -207,6 +207,7 @@ const App = () => {
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
   const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
   const [youBlurEnabled, setYouBlurEnabled] = useState(true);
+  const [linkedinBlurHome, setLinkedinBlurHome] = useState(true);
   const [linkedinBlurNews, setLinkedinBlurNews] = useState(true);
   const [linkedinRemoveBadges, setLinkedinRemoveBadges] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -249,6 +250,7 @@ const App = () => {
         "homePageBlurEnabled",
         "shortsBlurEnabled",
         "youMenuBlurEnabled",
+        "linkedinBlurHome",
         "linkedinBlurNews",
         "linkedinRemoveBadges",
         "wikiLinkPopupEnabled",
@@ -263,6 +265,7 @@ const App = () => {
         homePageBlurEnabled,
         shortsBlurEnabled,
         youMenuBlurEnabled,
+        linkedinBlurHome,
         linkedinBlurNews,
         linkedinRemoveBadges,
         wikiLinkPopupEnabled,
@@ -276,13 +279,10 @@ const App = () => {
         setHomeBlurEnabled(homePageBlurEnabled ?? true);
         setShortsBlurEnabled(shortsBlurEnabled ?? true);
         setYouBlurEnabled(youMenuBlurEnabled ?? true);
+        setLinkedinBlurHome(linkedinBlurHome ?? true);
         setLinkedinBlurNews(linkedinBlurNews ?? true);
         setLinkedinRemoveBadges(linkedinRemoveBadges ?? true);
-        // PYMK / Jobs / Home are not implemented yet: keep storage off so LinkedIn script does not apply them.
-        chrome.storage.local.set({
-          linkedinBlurJobs: false,
-          linkedinBlurHome: false,
-        });
+        chrome.storage.local.set({ linkedinBlurJobs: false });
         setWikipediaLinkPopupEnabled(wikiLinkPopupEnabled ?? true);
         setWikipediaMainBlur(wikipediaMainBlur ?? true);
         setGmailBlurEnabled(gmailBlurEnabled ?? true);
@@ -290,6 +290,29 @@ const App = () => {
         setSocialBlurEnabled(socialBlurEnabled ?? true);
       },
     );
+  }, []);
+
+  useEffect(() => {
+    const onChanged = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      area: chrome.storage.AreaName,
+    ) => {
+      if (area !== "local") return;
+      if (changes.linkedinBlurHome) {
+        const v = changes.linkedinBlurHome.newValue;
+        setLinkedinBlurHome(v !== undefined ? !!v : true);
+      }
+      if (changes.linkedinBlurNews) {
+        const v = changes.linkedinBlurNews.newValue;
+        setLinkedinBlurNews(v !== undefined ? !!v : true);
+      }
+      if (changes.linkedinRemoveBadges) {
+        const v = changes.linkedinRemoveBadges.newValue;
+        setLinkedinRemoveBadges(v !== undefined ? !!v : true);
+      }
+    };
+    chrome.storage.onChanged.addListener(onChanged);
+    return () => chrome.storage.onChanged.removeListener(onChanged);
   }, []);
 
   // Live session timer update
@@ -308,12 +331,6 @@ const App = () => {
     });
     chrome.storage.local.get({ youMenuBlurEnabled: true }, ({ youMenuBlurEnabled }) => {
       setYouBlurEnabled(youMenuBlurEnabled);
-    });
-    chrome.storage.local.get({ linkedinBlurNews: true }, ({ linkedinBlurNews }) => {
-      setLinkedinBlurNews(linkedinBlurNews);
-    });
-    chrome.storage.local.get({ linkedinRemoveBadges: true }, ({ linkedinRemoveBadges }) => {
-      setLinkedinRemoveBadges(linkedinRemoveBadges);
     });
     chrome.storage.local.get(
       { wikipediaLinkPopupEnabled: true },
@@ -517,6 +534,13 @@ const App = () => {
     await sendLinkedinToggleToActiveTab("TOGGLE_LINKEDIN_NEWS", newValue);
   };
 
+  const handleLinkedinHomeToggle = async () => {
+    const newValue = !linkedinBlurHome;
+    setLinkedinBlurHome(newValue);
+    await chrome.storage.local.set({ linkedinBlurHome: newValue });
+    await sendLinkedinToggleToActiveTab("TOGGLE_LINKEDIN_HOME", newValue);
+  };
+
   const handleLinkedinBadgeToggle = async () => {
     const newValue = !linkedinRemoveBadges;
     setLinkedinRemoveBadges(newValue);
@@ -616,8 +640,10 @@ const App = () => {
 
   const mainView = (
     <div className="main-view">
-      <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h1 className="popup-title">{t("home_title")}</h1>
+      <div className="main-header">
+        <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
+        <h1 className="popup-title">{t("home_title")}</h1>
+      </div>
       {/* Tab buttons */}
       <div className="tab-buttons">
         <button
@@ -684,7 +710,7 @@ const App = () => {
                 </button>
               </div>
             ) : (
-              <p className="no-session">No focus session running</p>
+              <p className="no-session">No focus sessions running</p>
             )}
           </section>
 
@@ -740,9 +766,11 @@ const App = () => {
   );
 
   const settingsView = (
-    <div>
-      <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
-      <h2 className="settings-title">{t("settings_title")}</h2>
+    <div className="settings-view">
+      <div className="settings-header">
+        <img src={iconUrl} alt="Focus Mode Icon" className="focus-logo" />
+        <h2 className="settings-title">{t("settings_title")}</h2>
+      </div>
       <div className="options-container">
         <h3 className="settings-label">YouTube</h3>
         <label className="option-label">
@@ -773,7 +801,7 @@ const App = () => {
         <h3 className="settings-label">LinkedIn</h3>
         <label className="option-label">
           <span className="option-text">{t("blur_linkedin_home")}</span>
-          <Toggle checked={false} onChange={() => {}} disabled />
+          <Toggle checked={linkedinBlurHome} onChange={handleLinkedinHomeToggle} />
         </label>
         <label className="option-label">
           <span className="option-text">{t("remove_badges")}</span>
@@ -808,9 +836,14 @@ const App = () => {
           <Toggle checked={socialBlurEnabled} onChange={handleSocialBlurToggle} />
         </label>
       </div>
-      <button className="close-button" onClick={() => setShowSettings(false)}>
-        {t("close_button")}
-      </button>
+      <div className="settings-action-row">
+        <button
+          className="close-button settings-action-button"
+          onClick={() => setShowSettings(false)}
+        >
+          {t("close_button")}
+        </button>
+      </div>
     </div>
   );
 

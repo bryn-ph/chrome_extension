@@ -9,8 +9,8 @@ body {
   position: relative;
   width: 400px;
   height: fit-content;
-  padding: 24px 30px 30px;
-  background-color: #ffe4c6;
+  padding: 12px 12px 12px;
+  background-color: #fff8e7;
   font-family: sans-serif;
 }
 
@@ -24,15 +24,55 @@ body {
   z-index: 1;
 }
 
+.main-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  margin: 8px 0 10px;
+}
+
+.main-view .focus-logo {
+  position: static;
+  width: 34px;
+  flex-shrink: 0;
+}
+
 /* Titles */
 h1.popup-title,
 h2.settings-title {
   font-size: 2rem;
-  margin: 0 0 20px;
-  color: #663300;
+  margin: 0 0 10px;
+  color: #000000;
   text-align: center;
   position: relative;
   top: -4px;
+}
+
+.main-header .popup-title {
+  margin: 0;
+  top: 0;
+  text-align: left;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  margin: 8px 0 10px;
+}
+
+.settings-view .focus-logo {
+  position: static;
+  width: 34px;
+  flex-shrink: 0;
+}
+
+.settings-header .settings-title {
+  margin: 0;
+  top: 0;
+  text-align: left;
 }
 
 /* Timer / no-session text */
@@ -50,10 +90,8 @@ p.no-session {
 
 /* Settings icon */
 img.settings-icon {
-  position: absolute;
-  bottom: 24px;
-  left: 24px;
-  width: 32px;
+  display: block;
+  width: 38px;
   height: auto;
   cursor: pointer;
 }
@@ -69,7 +107,7 @@ img.settings-icon {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 0px;
 }
 
 .option-label {
@@ -84,15 +122,16 @@ img.settings-icon {
 
 .option-text {
   font-size: 18px;
+  color: #3f3f3f;
 }
 
 /* Toggle switch */
 .toggle {
   display: flex;
   align-items: center;
-  width: 55px;
+  width: 52px;
   height: 24px;
-  padding: 2px 8px;
+  padding: 2px 6px 2px 8px;
   border-radius: 20px;
   position: relative;
   cursor: pointer;
@@ -114,10 +153,14 @@ img.settings-icon {
 }
 
 .toggle-text {
-  margin-right: auto;
+  width: 100%;
+  text-align: left;
+  margin-left: 16px;
   font-size: 12px;
   font-weight: bold;
   color: white;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .toggle-button {
@@ -127,6 +170,7 @@ img.settings-icon {
   background-color: white;
   border-radius: 50%;
   transition: 0.3s;
+  z-index: 2;
 }
 
 .toggle.active .toggle-button {
@@ -158,6 +202,19 @@ button.close-button:disabled {
   cursor: not-allowed;
 }
 
+.settings-action-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  justify-content: space-between;
+}
+
+button.settings-action-button {
+  margin: 0;
+  width: 100%;
+  font-size: 16px;
+}
+
 /* Session Cards Container */
 .session-list {
   max-height: 160px;
@@ -180,7 +237,7 @@ button.close-button:disabled {
 /* Domain Title */
 .session-card .domain {
   font-weight: bold;
-  color: #5a2c00;
+  color: #000000;
   display: block;
   margin-bottom: 4px;
 }
@@ -254,6 +311,7 @@ img.settings-icon {
   font-size: 13px;
   font-weight: 600;
   color: #8a6640;
+  font-weight: bold;
   background: transparent;
   border: none;
   border-radius: 7px;
@@ -281,14 +339,15 @@ img.settings-icon {
 }
 
 .tab-button.active {
-  color: #fffcf6;
-  background: #e9902c;
-  box-shadow: 0 1px 3px rgba(102, 51, 0, 0.2);
+  font-weight: bold;
+  background-color: #e9902c;
+  color: #ffffff;
 }
 
-.tab-button.active .tab-badge {
-  background: #fffcf6;
-  color: #e9902c;
+.tab-button:active {
+  font-weight: bold;
+  background-color: #e9902c;
+  color: #ffffff;
 }
 
 /* Site list */
@@ -317,7 +376,7 @@ img.settings-icon {
 /* Site name */
 .site-list li span {
   font-weight: bold;
-  color: #5a2c00;
+  color: #000000;
 }
 
 /* Buttons for actions */
@@ -387,7 +446,7 @@ img.settings-icon {
 
 .active-hours-container label {
   font-size: 15px;
-  color: #5a2c00;
+  color: #000000;
   font-weight: 700;
 }
 
@@ -403,7 +462,7 @@ img.settings-icon {
 }
 
 .save-hours-btn {
-  background: #5a2c00;
+  background: #000000;
   color: white;
   border: none;
   padding: 6px 10px;
@@ -423,7 +482,7 @@ img.settings-icon {
 /* Instruction text */
 .blocklist-instructions {
   font-size: 15px;
-  color: #5a2c00;
+  color: #000000;
   margin-bottom: 6px;
   font-weight: 700;
 }
@@ -442,7 +501,7 @@ img.settings-icon {
   border: 1px solid #e0b991;
   font-size: 14px;
   background-color: #fffcf6;
-  color: #5a2c00;
+  color: #000000;
 }
 
 /* Add button styled same width/height */
@@ -473,6 +532,7 @@ img.settings-icon {
 /*  Active Sessions */
 .active-sessions {
   margin-top: 12px;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -487,7 +547,7 @@ img.settings-icon {
   margin: 0 0 8px;
   font-size: 14px;
   font-weight: 700;
-  color: #5a2c00;
+  color: #000000;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding-bottom: 4px;
@@ -526,7 +586,7 @@ img.settings-icon {
 
 .session-task {
   font-weight: 600;
-  color: #5a2c00;
+  color: #000000;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -535,12 +595,12 @@ img.settings-icon {
 .session-time {
   font-family: monospace;
   font-weight: 700;
-  color: #5a2c00;
+  color: #000000;
   font-size: 16px;
 }
 
 .session-intention {
-  color: #5a2c00;
+  color: #000000;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -592,7 +652,7 @@ img.settings-icon {
 .session-section .no-session {
   margin: 8px 0 0;
   font-size: 14px;
-  color: #8a6640;
+  color: #4f4f4f;
   font-style: italic;
   text-align: center;
 }
