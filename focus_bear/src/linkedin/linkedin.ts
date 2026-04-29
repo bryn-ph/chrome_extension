@@ -2,8 +2,10 @@
   const STYLE_ID = "focusbear-linkedin-style";
   const BLUR_CLASS = "focusbear-linkedin-news-blur";
   const HIDE_BADGE_CLASS = "focusbear-hide-badge";
+  const BLUR_HOME_FEED_CLASS = "focusbear-linkedin-home-blur";
   const NEWS_MARKER = "data-focusbear-news-blur";
   const BADGE_MARKER = "data-focusbear-badge-hidden";
+  const HOME_FEED_MARKER = "data-focusbear-home-feed-hidden";
 
   const injectStyles = () => {
     if (document.getElementById(STYLE_ID)) return;
@@ -19,11 +21,18 @@
       .${HIDE_BADGE_CLASS} {
         display: none !important;
       }
+      .${BLUR_HOME_FEED_CLASS} {
+        filter: blur(8px) !important;
+        pointer-events: none !important;
+        user-select: none !important;
+        transition: filter 120ms linear !important;
+      }
     `;
     document.head.appendChild(el);
   };
 
   const isHomeFeed = () => window.location.pathname.startsWith("/feed");
+  const normalizeText = (text: string) => text.toLowerCase();
 
   const isLikelyNewsCard = (el: HTMLElement) => {
     const rect = el.getBoundingClientRect();
@@ -34,23 +43,23 @@
   };
 
   const findRailCardsByHeading = (headings: string[], evidenceTerms: string[]) => {
-    if (!isHomeFeed()) return [] as HTMLElement[];
+    if (!isHomeFeed()) return [];
 
     // Text-first targeting in right rail; then walk up to nearest card-like ancestor.
     const baseNodes = Array.from(
       document.querySelectorAll<HTMLElement>("div, section, aside"),
     ).filter((el) => {
-      const text = (el.textContent || "").toLowerCase();
+      const text = normalizeText(el.textContent || "");
       return headings.some((heading) => text.includes(heading));
     });
-    if (baseNodes.length === 0) return [] as HTMLElement[];
+    if (baseNodes.length === 0) return [];
 
     const candidates: HTMLElement[] = [];
     baseNodes.forEach((node) => {
       // Walk up to a card-like ancestor and keep the first good match for this text node.
       let current: HTMLElement | null = node;
       for (let i = 0; i < 8 && current; i += 1) {
-        const text = (current.textContent || "").toLowerCase();
+        const text = normalizeText(current.textContent || "");
         if (isLikelyNewsCard(current) && evidenceTerms.some((term) => text.includes(term))) {
           candidates.push(current);
           break;
@@ -59,7 +68,7 @@
       }
     });
 
-    if (candidates.length === 0) return [] as HTMLElement[];
+    if (candidates.length === 0) return [];
 
     // De-dupe by element identity and sort to keep output stable.
     const unique = Array.from(new Set(candidates));
@@ -89,14 +98,14 @@
   const setBlurNews = (enabled: boolean) => {
     const current = Array.from(document.querySelectorAll<HTMLElement>(`[${NEWS_MARKER}="1"]`));
     if (!enabled) {
-      if (current.length > 0) clearNewsBlur();
+      clearNewsBlur();
       return;
     }
 
     const targets = findNewsTargets();
     if (targets.length === 0) {
       // Avoid stale blur when LinkedIn re-renders or route changes.
-      if (current.length > 0) clearNewsBlur();
+      clearNewsBlur();
       return;
     }
 
@@ -118,6 +127,67 @@
     document.querySelectorAll<HTMLElement>(`[${BADGE_MARKER}="1"]`).forEach((el) => {
       el.classList.remove(HIDE_BADGE_CLASS);
       el.removeAttribute(BADGE_MARKER);
+    });
+  };
+
+  const findHomeFeedTargets = (): HTMLElement[] => {
+    if (!isHomeFeed()) return [];
+
+    const main = document.querySelector<HTMLElement>("main");
+    if (!main) return [];
+
+    const mainFeed = main.querySelector<HTMLElement>('[data-testid="mainFeed"]');
+    if (mainFeed) {
+      const targets = Array.from(mainFeed.querySelectorAll<HTMLElement>('[role="listitem"]'));
+
+      // Include "Sort by: Top" control so home blur covers the whole feed area.
+      const sortByTop = Array.from(
+        mainFeed.querySelectorAll<HTMLElement>('div[role="button"][tabindex="0"]'),
+      ).filter((el) => {
+        const text = normalizeText(el.textContent || "");
+        return text.includes("sort by") && text.includes("top");
+      });
+      targets.push(...sortByTop);
+
+      if (targets.length > 0) return Array.from(new Set(targets));
+      return [mainFeed];
+    }
+
+    const fallback = main.querySelector<HTMLElement>(".scaffold-finite-scroll__content");
+    return fallback ? [fallback] : [];
+  };
+
+  const clearHomeFeed = () => {
+    document.querySelectorAll<HTMLElement>(`[${HOME_FEED_MARKER}="1"]`).forEach((el) => {
+      el.classList.remove(BLUR_HOME_FEED_CLASS);
+      el.removeAttribute(HOME_FEED_MARKER);
+    });
+  };
+
+  /** Only controlled by linkedinBlurHome; do not clear on transient empty DOM (avoids cross-toggle flicker). */
+  const setBlurHomeFeed = (enabled: boolean) => {
+    const current = Array.from(document.querySelectorAll<HTMLElement>(`[${HOME_FEED_MARKER}="1"]`));
+    if (!enabled) {
+      clearHomeFeed();
+      return;
+    }
+
+    const targets = findHomeFeedTargets();
+    if (targets.length === 0) {
+      return;
+    }
+
+    const targetSet = new Set(targets);
+    current.forEach((node) => {
+      if (!targetSet.has(node)) {
+        node.classList.remove(BLUR_HOME_FEED_CLASS);
+        node.removeAttribute(HOME_FEED_MARKER);
+      }
+    });
+
+    targets.forEach((node) => {
+      node.classList.add(BLUR_HOME_FEED_CLASS);
+      node.setAttribute(HOME_FEED_MARKER, "1");
     });
   };
 
@@ -179,16 +249,20 @@
 
   const applyFromStorage = (done?: () => void) => {
     injectStyles();
-    chrome.storage.local.get({ linkedinBlurNews: true, linkedinRemoveBadges: true }, (res) => {
-      try {
-        setBlurNews(!!res.linkedinBlurNews);
-        setRemoveBadges(!!res.linkedinRemoveBadges);
-      } catch (e) {
-        console.warn("FocusBear: LinkedIn apply failed", e);
-      } finally {
-        done?.();
-      }
-    });
+    chrome.storage.local.get(
+      { linkedinBlurNews: true, linkedinRemoveBadges: true, linkedinBlurHome: true },
+      (res) => {
+        try {
+          setBlurNews(!!res.linkedinBlurNews);
+          setRemoveBadges(!!res.linkedinRemoveBadges);
+          setBlurHomeFeed(!!res.linkedinBlurHome);
+        } catch (e) {
+          console.warn("FocusBear: LinkedIn apply failed", e);
+        } finally {
+          done?.();
+        }
+      },
+    );
   };
 
   chrome.runtime.onMessage.addListener((msg, _s, sendResponse) => {
@@ -203,11 +277,27 @@
       sendResponse({ ok: true });
       return;
     }
+    if (msg.type === "TOGGLE_LINKEDIN_HOME") {
+      setBlurHomeFeed(!!msg.payload);
+      sendResponse({ ok: true });
+      return;
+    }
   });
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
-    if (changes.linkedinBlurNews || changes.linkedinRemoveBadges) scheduleApply();
+    if (changes.linkedinBlurNews) {
+      const v = changes.linkedinBlurNews.newValue;
+      setBlurNews(v !== undefined ? !!v : true);
+    }
+    if (changes.linkedinRemoveBadges) {
+      const v = changes.linkedinRemoveBadges.newValue;
+      setRemoveBadges(v !== undefined ? !!v : true);
+    }
+    if (changes.linkedinBlurHome) {
+      const v = changes.linkedinBlurHome.newValue;
+      setBlurHomeFeed(v !== undefined ? !!v : true);
+    }
   });
 
   let scheduled = false;

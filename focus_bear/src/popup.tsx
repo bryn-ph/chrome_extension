@@ -259,6 +259,7 @@ const App = () => {
   const [homeBlurEnabled, setHomeBlurEnabled] = useState(true);
   const [shortsBlurEnabled, setShortsBlurEnabled] = useState(true);
   const [youBlurEnabled, setYouBlurEnabled] = useState(true);
+  const [linkedinBlurHome, setLinkedinBlurHome] = useState(true);
   const [linkedinBlurNews, setLinkedinBlurNews] = useState(true);
   const [linkedinRemoveBadges, setLinkedinRemoveBadges] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -303,6 +304,7 @@ const App = () => {
         "homePageBlurEnabled",
         "shortsBlurEnabled",
         "youMenuBlurEnabled",
+        "linkedinBlurHome",
         "linkedinBlurNews",
         "linkedinRemoveBadges",
         "wikiLinkPopupEnabled",
@@ -317,6 +319,7 @@ const App = () => {
         homePageBlurEnabled,
         shortsBlurEnabled,
         youMenuBlurEnabled,
+        linkedinBlurHome,
         linkedinBlurNews,
         linkedinRemoveBadges,
         wikiLinkPopupEnabled,
@@ -330,13 +333,10 @@ const App = () => {
         setHomeBlurEnabled(homePageBlurEnabled ?? true);
         setShortsBlurEnabled(shortsBlurEnabled ?? true);
         setYouBlurEnabled(youMenuBlurEnabled ?? true);
+        setLinkedinBlurHome(linkedinBlurHome ?? true);
         setLinkedinBlurNews(linkedinBlurNews ?? true);
         setLinkedinRemoveBadges(linkedinRemoveBadges ?? true);
-        // PYMK / Jobs / Home are not implemented yet: keep storage off so LinkedIn script does not apply them.
-        chrome.storage.local.set({
-          linkedinBlurJobs: false,
-          linkedinBlurHome: false,
-        });
+        chrome.storage.local.set({ linkedinBlurJobs: false });
         setWikipediaLinkPopupEnabled(wikiLinkPopupEnabled ?? true);
         setWikipediaMainBlur(wikipediaMainBlur ?? true);
         setGmailBlurEnabled(gmailBlurEnabled ?? true);
@@ -344,6 +344,29 @@ const App = () => {
         setSocialBlurEnabled(socialBlurEnabled ?? true);
       },
     );
+  }, []);
+
+  useEffect(() => {
+    const onChanged = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      area: chrome.storage.AreaName,
+    ) => {
+      if (area !== "local") return;
+      if (changes.linkedinBlurHome) {
+        const v = changes.linkedinBlurHome.newValue;
+        setLinkedinBlurHome(v !== undefined ? !!v : true);
+      }
+      if (changes.linkedinBlurNews) {
+        const v = changes.linkedinBlurNews.newValue;
+        setLinkedinBlurNews(v !== undefined ? !!v : true);
+      }
+      if (changes.linkedinRemoveBadges) {
+        const v = changes.linkedinRemoveBadges.newValue;
+        setLinkedinRemoveBadges(v !== undefined ? !!v : true);
+      }
+    };
+    chrome.storage.onChanged.addListener(onChanged);
+    return () => chrome.storage.onChanged.removeListener(onChanged);
   }, []);
 
   // Live session timer update
@@ -362,12 +385,6 @@ const App = () => {
     });
     chrome.storage.local.get({ youMenuBlurEnabled: true }, ({ youMenuBlurEnabled }) => {
       setYouBlurEnabled(youMenuBlurEnabled);
-    });
-    chrome.storage.local.get({ linkedinBlurNews: true }, ({ linkedinBlurNews }) => {
-      setLinkedinBlurNews(linkedinBlurNews);
-    });
-    chrome.storage.local.get({ linkedinRemoveBadges: true }, ({ linkedinRemoveBadges }) => {
-      setLinkedinRemoveBadges(linkedinRemoveBadges);
     });
     chrome.storage.local.get(
       { wikipediaLinkPopupEnabled: true },
@@ -569,6 +586,13 @@ const App = () => {
     setLinkedinBlurNews(newValue);
     await chrome.storage.local.set({ linkedinBlurNews: newValue });
     await sendLinkedinToggleToActiveTab("TOGGLE_LINKEDIN_NEWS", newValue);
+  };
+
+  const handleLinkedinHomeToggle = async () => {
+    const newValue = !linkedinBlurHome;
+    setLinkedinBlurHome(newValue);
+    await chrome.storage.local.set({ linkedinBlurHome: newValue });
+    await sendLinkedinToggleToActiveTab("TOGGLE_LINKEDIN_HOME", newValue);
   };
 
   const handleLinkedinBadgeToggle = async () => {
@@ -816,7 +840,7 @@ const App = () => {
         <h3 className="settings-label">LinkedIn</h3>
         <label className="option-label">
           <span className="option-text">{t("blur_linkedin_home")}</span>
-          <Toggle checked={false} onChange={() => {}} disabled />
+          <Toggle checked={linkedinBlurHome} onChange={handleLinkedinHomeToggle} />
         </label>
         <label className="option-label">
           <span className="option-text">{t("remove_badges")}</span>

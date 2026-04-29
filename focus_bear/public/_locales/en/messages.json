@@ -103,7 +103,7 @@
     "description": "Alert shown when trying to open settings during an unfocus session"
   },
   "blur_linkedin_home": {
-    "message": "Blur LinkedIn Home (coming soon)",
+    "message": "Blur Home Page",
     "description": "Option to blur the LinkedIn home page"
   }
 }
