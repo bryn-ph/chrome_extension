@@ -100,7 +100,8 @@
     },
     {
       "matches": ["<all_urls>"],
-      "js": ["blocklist.js"]
+      "js": ["blocklist.js"],
+      "run_at": "document_start"
     },
     {
       "matches": ["*://*.wikipedia.org/*"],
@@ -113,7 +114,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["floatingPopup.js", "assets/*"],
+      "resources": ["floatingPopup.js", "blocked.html", "assets/*"],
       "matches": ["<all_urls>"]
     },
     {
